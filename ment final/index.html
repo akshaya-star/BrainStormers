@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentaura - Your Gateway to Learning</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Script to handle direct access to landing page -->
+    <script>
+        // Check for URL parameter to clear auth state
+        const urlParams = new URLSearchParams(window.location.search);
+        const clearAuth = urlParams.get('no_auth') === 'true';
+        
+        if (clearAuth) {
+            console.log('Clearing authentication state due to URL parameter');
+            localStorage.removeItem('mentaura_user');
+            sessionStorage.removeItem('currentUser');
+            
+            // Remove parameter from URL to prevent multiple clears
+            const newUrl = window.location.pathname;
+            history.pushState({}, document.title, newUrl);
+            
+            // If Firebase is available, sign out
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    firebase.auth().signOut().then(() => {
+                        console.log('Firebase signed out successfully');
+                    }).catch(error => {
+                        console.error('Error signing out:', error);
+                    });
+                }
+            });
+        }
+    </script>
+    
+    <div class="glow"></div>
+    
+    <div class="landing-container">
+        <header>
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/mentaura-logo.png?v=1" alt="Mentaura Logo" id="logo-img" height="40">
+        <h1>MENTAURA.AI</h1>
+                </a>
+            </div>
+            <nav>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </nav>
+        </header>
+        
+        <main>
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1>Your Gateway to Limitless Knowledge</h1>
+                    <p>Achieve your learning goals with personalized AI-powered education</p>
+                    <div class="cta-buttons">
+                        <a href="#" class="primary-btn" onclick="document.getElementById('auth-modal').style.display='block';">START YOUR JOURNEY</a>
+                        <a href="#features" class="secondary-btn">LEARN MORE</a>
+                    </div>
+                </div>
+                <div class="mentaura-visual">
+                    <div class="particles">
+                        <div class="particle p1"></div>
+                        <div class="particle p2"></div>
+                        <div class="particle p3"></div>
+                        <div class="particle p4"></div>
+                        <div class="particle p5"></div>
+                        <div class="particle p6"></div>
+                        <div class="particle p7"></div>
+                        <div class="particle p8"></div>
+                        <div class="particle p9"></div>
+                        <div class="particle p10"></div>
+                        <div class="particle p11"></div>
+                        <div class="particle p12"></div>
+                        <div class="particle p13"></div>
+                        <div class="particle p14"></div>
+                        <div class="particle p15"></div>
+                    </div>
+                    <div class="brain-animation">
+                        <div class="network-node node1"></div>
+                        <div class="network-node node2"></div>
+                        <div class="network-node node3"></div>
+                        <div class="network-node node4"></div>
+                        <div class="network-node node5"></div>
+                        <div class="network-node node6"></div>
+                        <div class="network-connector connector1"></div>
+                        <div class="network-connector connector2"></div>
+                        <div class="network-connector connector3"></div>
+                        <div class="network-connector connector4"></div>
+                        <div class="network-connector connector5"></div>
+                        <div class="floating-icon icon1"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="floating-icon icon2"><i class="fas fa-book"></i></div>
+                        <div class="floating-icon icon3"><i class="fas fa-lightbulb"></i></div>
+                        <div class="floating-icon icon4"><i class="fas fa-chart-line"></i></div>
+                        <div class="floating-icon icon5"><i class="fas fa-rocket"></i></div>
+                    </div>
+                    <div class="mentaura-logo-large">
+                        <div class="logo-circle">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="features-section" id="features">
+                <h2>Why Choose Mentaura?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-brain"></i>
+                        <h3>AI-Powered Learning</h3>
+                        <p>Personalized education with cutting-edge artificial intelligence</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h3>Comprehensive Courses</h3>
+                        <p>Structured learning paths across various subjects</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-comments"></i>
+                        <h3>Interactive Conversations</h3>
+                        <p>Natural dialogue with your AI tutor for better understanding</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-gamepad"></i>
+                        <h3>Learning Games</h3>
+                        <p>Educational games that reinforce concepts while having fun</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="about-section" id="about">
+                <h2>About Mentaura</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>Mentaura is an innovative AI-powered educational platform designed to revolutionize the way you learn. We combine cutting-edge artificial intelligence with proven educational methodologies to create a personalized learning experience.</p>
+                        <p>Our mission is to make quality education accessible to everyone, regardless of their background or location. With Mentaura, you can learn at your own pace, get instant feedback, and track your progress as you master new skills and knowledge.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="contact-section" id="contact">
+                <h2>Contact Us</h2>
+                <div class="contact-form">
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="primary-btn">Send Message</button>
+                    </form>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="logo">
+                    <img src="images/mentaura-logo.png?v=1" alt="Mentaura Logo" height="30">
+                </div>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="#contact">Contact Us</a>
+                </div>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2025 Mentaura. All rights reserved.
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Login/Signup Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Login</div>
+                <div class="auth-tab" data-tab="signup">Sign Up</div>
+            </div>
+            
+            <div class="auth-form-container active" id="login-form-container">
+            <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="auth-button">Login</button>
+            </form>
+            </div>
+            
+            <div class="auth-form-container" id="signup-form-container">
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-username">Username</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required>
+                        <small class="password-criteria">Password must be at least 8 characters with at least one uppercase letter, one number, and one special character.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-learning-type">Learning Type</label>
+                        <select id="signup-learning-type" required>
+                            <option value="" disabled selected>Select your learning purpose</option>
+                            <option value="personal-growth">Personal Growth</option>
+                            <option value="examination">Exam Preparation</option>
+                            <option value="higher-studies">Higher Studies</option>
+                            <option value="professional">Professional Development</option>
+                            <option value="school">School Learning</option>
+                            <option value="hobby">Hobby/Interest</option>
+                </select>
+                    </div>
+                    <button type="submit" class="auth-button">Sign Up</button>
+            </form>         
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase Scripts - Updated versions for consistency -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+    
+    <!-- Load Firebase initialization first -->
+    <script src="modal.js"></script>
+    <!-- Then load API client -->
+    <script src="backend/api_client.js"></script>
+    <!-- Then load app.js (without module type) -->
+    <script src="app.js"></script>
+</body>
+</html>

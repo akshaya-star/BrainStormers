@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read and write their own data
+    match /users/{userId} {
+      allow create: if true;  // Allow creation without auth for initial signup
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow username existence check without authentication
+    match /users/{userId} {
+      allow list: if true;  // Allow listing without auth for username checks
+    }
+    
+    // Allow authenticated users to read public data
+    match /{document=**} {
+      allow read: if request.auth != null;
+    }
+  }
+} 

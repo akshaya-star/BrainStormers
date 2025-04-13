@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentaura - Dashboard</title>
+    <link rel="stylesheet" href="dash.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="popup.js"></script>
+    <style>
+        /* Structured Notes Styling */
+        .structured-notes {
+            background-color: #f0f7ff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+        }
+        
+        .notes-header {
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #cce0ff;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notes-header i {
+            margin-right: 8px;
+        }
+        
+        .notes-content {
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .markdown-content h1, 
+        .markdown-content h2, 
+        .markdown-content h3 {
+            color: #0066cc;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .markdown-content h1 {
+            font-size: 1.4em;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.2em;
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.1em;
+        }
+        
+        .markdown-content ul, 
+        .markdown-content ol {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 5px;
+        }
+        
+        .markdown-content p {
+            margin-bottom: 10px;
+        }
+        
+        .markdown-content code {
+            background-color: #e6f0ff;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .learning-message .message-content {
+            max-width: 90%;
+        }
+        
+        /* Voice Controls inside Notes */
+        .learning-message .voice-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed #cce0ff;
+        }
+        
+        .voice-control-btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .voice-control-btn:hover {
+            background-color: #0055aa;
+        }
+        
+        .voice-control-btn:active {
+            background-color: #004499;
+        }
+        
+        .stop-btn {
+            background-color: #cc3300;
+        }
+        
+        .stop-btn:hover {
+            background-color: #bb2200;
+        }
+    </style>
+    
+    <!-- Firebase Scripts - Updated versions for consistency -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+    
+    <!-- Action Cards Script -->
+    <script src="action-cards.js"></script>
+</head>
+<body>
+    <!-- Script to handle direct access to dashboard -->
+    <script>
+        // First check if we're accessing the dashboard directly without auth
+        const checkAuth = function() {
+            // Check if user is logged in
+            const storedUser = localStorage.getItem('mentaura_user');
+            
+            if (!storedUser) {
+                console.log('No authentication found, redirecting to login page');
+                window.location.href = 'index.html?direct_access=true';
+                return false;
+            }
+            
+            return true;
+        };
+        
+        // Perform the check immediately
+        if (!checkAuth()) {
+            // Add event listener to prevent any content loading if auth check fails
+            document.addEventListener('DOMContentLoaded', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        }
+    </script>
+    
+    <div class="glow"></div>
+    <div class="glow-secondary"></div>
+    
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <h1>MENTAURA.AI</h1>
+            </div>
+            <nav>
+                <ul class="nav-tabs">
+                    <li class="active" data-tab="home">Home</li>
+                    <li data-tab="learning">Learning</li>
+                    <li data-tab="fun-talks">Fun Talks</li>
+                    <li data-tab="games">Games</li>
+                    <li data-tab="customize">Customize AI</li>
+                </ul>
+            </nav>
+            <div class="profile-section">
+                <div class="profile-info">
+                    <span id="username">Guest</span>
+                    <span id="learning-type" class="learning-type-badge">Personal Growth</span>
+                </div>
+                <div class="profile-avatar" id="profile-avatar">
+                    <!-- Avatar image or initial will be inserted via JavaScript -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Home Tab Content -->
+            <div class="tab-content active" id="home-content">
+                <div class="ai-tutor-section">
+                    <div class="ai-tutor-header">
+                        <h2>Your Personal AI Tutor</h2>
+                        <p>Ask anything, learn everything</p>
+                    </div>
+                    
+                    <div class="conversation-container">
+                        <div class="conversation-messages" id="conversation-history">
+                            <!-- Conversation messages will be added here by JavaScript -->
+                        </div>
+                        
+                        <div class="input-container">
+                            <div class="input-options">
+                                <button class="option-btn" id="voice-input">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="option-btn" id="image-upload">
+                                    <i class="fas fa-image"></i>
+                                </button>
+                            </div>
+                            <input type="text" id="user-input" placeholder="Ask your doubts or what you want to learn...">
+                            <button id="send-message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="action-card" id="continue-learning-btn">
+                            <i class="fas fa-book"></i>
+                            <span>Continue Learning</span>
+                        </div>
+                        <div class="action-card" id="practice-questions-btn">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Practice Questions</span>
+                        </div>
+                        <div class="action-card" id="new-topic-btn">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>New Topic</span>
+                        </div>
+                        <div class="action-card" id="learning-history-btn">
+                            <i class="fas fa-history"></i>
+                            <span>Learning History</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <h3>Your Learning Progress</h3>
+                    <div id="learning-progress-container" class="progress-cards">
+                        <div class="empty-state">
+                            <i class="fas fa-book-reader"></i>
+                            <p>Your learning progress will appear here once you start learning topics.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Learning Tab Content -->
+            <div class="tab-content" id="learning-content">
+                <div class="learning-header">
+                    <h2>Personalized Learning</h2>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Search for topics, courses, materials...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                
+                <div class="learning-categories">
+                    <div class="category" id="books-category">
+                        <div class="category-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3>Books</h3>
+                        <p>Comprehensive reading materials</p>
+                    </div>
+                    <div class="category" id="courses-category">
+                        <div class="category-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <h3>Courses</h3>
+                        <p>Structured learning paths</p>
+                    </div>
+                    <div class="category" id="practice-category">
+                        <div class="category-icon">
+                            <i class="fas fa-pencil-alt"></i>
+                        </div>
+                        <h3>Practice</h3>
+                        <p>Interactive exercises</p>
+                    </div>
+                    <div class="category" id="topics-category">
+                        <div class="category-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <h3>Topics</h3>
+                        <p>Explore by subject</p>
+                    </div>
+                </div>
+                
+                <!-- Books Section -->
+                <div class="learning-section" id="books-section" style="display: none;">
+                    <div class="section-header">
+                        <h3>Learning Books</h3>
+                        <div class="section-actions">
+                            <button class="upload-btn" id="upload-book-btn"><i class="fas fa-upload"></i> Upload Book</button>
+                            <button class="web-search-btn" id="search-books-btn"><i class="fas fa-search"></i> Web Search</button>
+                        </div>
+                    </div>
+                    <div class="book-upload-container" style="display: none;">
+                        <h4>Upload a Book</h4>
+                        <p>Upload PDF, EPUB or other document formats to add to your library.</p>
+                        <div id="book-upload-form">
+                            <div class="form-group">
+                                <label for="book-title">Book Title</label>
+                                <input type="text" id="book-title" placeholder="Enter book title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="book-author">Author</label>
+                                <input type="text" id="book-author" placeholder="Enter author name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="book-category">Category</label>
+                                <select id="book-category" required>
+                                    <option value="">Select a category</option>
+                                    <option value="programming">Programming</option>
+                                    <option value="mathematics">Mathematics</option>
+                                    <option value="science">Science</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="book-file">Book File</label>
+                                <input type="file" id="book-file" accept=".pdf,.epub,.mobi,.jpg,.png,.jpeg" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" id="upload-book-btn-submit" class="primary-btn">Upload Book</button>
+                                <button type="button" class="secondary-btn" id="cancel-upload">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="book-search-container" style="display: none;">
+                        <h4>Search Books Online</h4>
+                        <p>Search for books available on the web to add to your library.</p>
+                        <div class="search-form">
+                            <input type="text" id="book-search-input" placeholder="Search by title, author, or subject">
+                            <button id="execute-book-search" class="primary-btn">Search</button>
+                        </div>
+                        <div id="book-search-results" class="book-results">
+                            <!-- Search results will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Courses Section -->
+                <div class="learning-section" id="courses-section" style="display: none;">
+                    <div class="section-header">
+                        <h3>Structured Learning Paths</h3>
+                    </div>
+                    <div class="courses-container">
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Full Stack Development</h4>
+                                <p>Complete path from frontend to backend development</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 16 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Intermediate</span>
+                                </div>
+                                <button class="start-course-btn" data-course="fullstack">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="fullstack">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-square-root-alt"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Basic Mathematics</h4>
+                                <p>Essential mathematical concepts and problem-solving</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 10 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Beginner</span>
+                                </div>
+                                <button class="start-course-btn" data-course="math">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="math">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Machine Learning</h4>
+                                <p>Introduction to AI and machine learning concepts</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 12 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Advanced</span>
+                                </div>
+                                <button class="start-course-btn" data-course="ml">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="ml">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Mobile App Development</h4>
+                                <p>Build cross-platform mobile applications</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 14 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Intermediate</span>
+                                </div>
+                                <button class="start-course-btn" data-course="mobile">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="mobile">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Data Science</h4>
+                                <p>Data analysis, visualization, and statistical methods</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 12 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Intermediate</span>
+                                </div>
+                                <button class="start-course-btn" data-course="datascience">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="datascience">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Cybersecurity</h4>
+                                <p>Learn about network security and ethical hacking</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 16 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Advanced</span>
+                                </div>
+                                <button class="start-course-btn" data-course="cyber">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="cyber">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Cloud Computing</h4>
+                                <p>Master cloud platforms and services</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 10 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Intermediate</span>
+                                </div>
+                                <button class="start-course-btn" data-course="cloud">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="cloud">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Game Development</h4>
+                                <p>Create interactive games using modern engines</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 14 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Intermediate</span>
+                                </div>
+                                <button class="start-course-btn" data-course="game">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="game">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>UI/UX Design</h4>
+                                <p>Learn user interface and experience design principles</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 8 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Beginner</span>
+                                </div>
+                                <button class="start-course-btn" data-course="design">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="design">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Natural Language Processing</h4>
+                                <p>Explore AI-powered text analysis and processing</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 12 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Advanced</span>
+                                </div>
+                                <button class="start-course-btn" data-course="nlp">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="nlp">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Robotics</h4>
+                                <p>Introduction to robotics and automation</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 16 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Advanced</span>
+                                </div>
+                                <button class="start-course-btn" data-course="robotics">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="robotics">Add to Library</button>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="course-icon">
+                                <i class="fas fa-chart-network"></i>
+                            </div>
+                            <div class="course-info">
+                                <h4>Blockchain Development</h4>
+                                <p>Learn about blockchain technology and smart contracts</p>
+                                <div class="course-details">
+                                    <span><i class="fas fa-clock"></i> 14 weeks</span>
+                                    <span><i class="fas fa-signal"></i> Advanced</span>
+                                </div>
+                                <button class="start-course-btn" data-course="blockchain">Start Learning</button>
+                                <button class="add-to-library-btn" data-course="blockchain">Add to Library</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Course Learning Plan (Initially hidden) -->
+                    <div id="course-plan-container" style="display: none;">
+                        <div class="course-plan-header">
+                            <button class="back-btn" id="back-to-courses"><i class="fas fa-arrow-left"></i> Back to Courses</button>
+                            <h3 id="course-plan-title">Course Learning Plan</h3>
+                        </div>
+                        <div class="course-plan-content" id="course-plan-content">
+                            <!-- Course plan content will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Unified Library Section -->
+                <div class="library-section">
+                    <!-- Library content will be dynamically generated -->
+                </div>
+                
+                <!-- Practice Section -->
+                <div class="learning-section" id="practice-section" style="display: none;">
+                    <div class="section-header">
+                        <h3>Practice Questions</h3>
+                    </div>
+                    <div class="topics-container">
+                        <div class="subject-group">
+                            <h4>Programming</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="javascript">
+                                    <i class="fas fa-code"></i>
+                                    <span>JavaScript Basics</span>
+                                </div>
+                                <div class="topic-item" data-topic="python">
+                                    <i class="fab fa-python"></i>
+                                    <span>Python Programming</span>
+                                </div>
+                                <div class="topic-item" data-topic="html-css">
+                                    <i class="fas fa-laptop-code"></i>
+                                    <span>HTML & CSS</span>
+                                </div>
+                                <div class="topic-item" data-topic="algorithms">
+                                    <i class="fas fa-project-diagram"></i>
+                                    <span>Algorithms</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Mathematics</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="algebra">
+                                    <i class="fas fa-square-root-alt"></i>
+                                    <span>Algebra</span>
+                                </div>
+                                <div class="topic-item" data-topic="calculus">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Calculus</span>
+                                </div>
+                                <div class="topic-item" data-topic="geometry">
+                                    <i class="fas fa-shapes"></i>
+                                    <span>Geometry</span>
+                                </div>
+                                <div class="topic-item" data-topic="statistics">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>Statistics</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Physics</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="mechanics">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>Mechanics</span>
+                                </div>
+                                <div class="topic-item" data-topic="thermodynamics">
+                                    <i class="fas fa-temperature-high"></i>
+                                    <span>Thermodynamics</span>
+                                </div>
+                                <div class="topic-item" data-topic="electromagnetism">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Electromagnetism</span>
+                                </div>
+                                <div class="topic-item" data-topic="quantum">
+                                    <i class="fas fa-atom"></i>
+                                    <span>Quantum Physics</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Chemistry</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="organic">
+                                    <i class="fas fa-flask"></i>
+                                    <span>Organic Chemistry</span>
+                                </div>
+                                <div class="topic-item" data-topic="inorganic">
+                                    <i class="fas fa-vial"></i>
+                                    <span>Inorganic Chemistry</span>
+                                </div>
+                                <div class="topic-item" data-topic="physical">
+                                    <i class="fas fa-atom"></i>
+                                    <span>Physical Chemistry</span>
+                                </div>
+                                <div class="topic-item" data-topic="analytical">
+                                    <i class="fas fa-microscope"></i>
+                                    <span>Analytical Chemistry</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Biology</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="cell-biology">
+                                    <i class="fas fa-bacterium"></i>
+                                    <span>Cell Biology</span>
+                                </div>
+                                <div class="topic-item" data-topic="genetics">
+                                    <i class="fas fa-dna"></i>
+                                    <span>Genetics</span>
+                                </div>
+                                <div class="topic-item" data-topic="ecology">
+                                    <i class="fas fa-leaf"></i>
+                                    <span>Ecology</span>
+                                </div>
+                                <div class="topic-item" data-topic="physiology">
+                                    <i class="fas fa-heart"></i>
+                                    <span>Physiology</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Economics</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="microeconomics">
+                                    <i class="fas fa-store"></i>
+                                    <span>Microeconomics</span>
+                                </div>
+                                <div class="topic-item" data-topic="macroeconomics">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Macroeconomics</span>
+                                </div>
+                                <div class="topic-item" data-topic="international">
+                                    <i class="fas fa-globe"></i>
+                                    <span>International Economics</span>
+                                </div>
+                                <div class="topic-item" data-topic="finance">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Financial Economics</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>History</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="ancient">
+                                    <i class="fas fa-landmark"></i>
+                                    <span>Ancient History</span>
+                                </div>
+                                <div class="topic-item" data-topic="medieval">
+                                    <i class="fas fa-chess-rook"></i>
+                                    <span>Medieval History</span>
+                                </div>
+                                <div class="topic-item" data-topic="modern">
+                                    <i class="fas fa-city"></i>
+                                    <span>Modern History</span>
+                                </div>
+                                <div class="topic-item" data-topic="world-wars">
+                                    <i class="fas fa-fighter-jet"></i>
+                                    <span>World Wars</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Geography</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="physical">
+                                    <i class="fas fa-mountain"></i>
+                                    <span>Physical Geography</span>
+                                </div>
+                                <div class="topic-item" data-topic="human">
+                                    <i class="fas fa-users"></i>
+                                    <span>Human Geography</span>
+                                </div>
+                                <div class="topic-item" data-topic="climate">
+                                    <i class="fas fa-cloud-sun"></i>
+                                    <span>Climate & Weather</span>
+                                </div>
+                                <div class="topic-item" data-topic="cartography">
+                                    <i class="fas fa-map"></i>
+                                    <span>Cartography</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Literature</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="poetry">
+                                    <i class="fas fa-feather"></i>
+                                    <span>Poetry</span>
+                                </div>
+                                <div class="topic-item" data-topic="prose">
+                                    <i class="fas fa-book"></i>
+                                    <span>Prose</span>
+                                </div>
+                                <div class="topic-item" data-topic="drama">
+                                    <i class="fas fa-theater-masks"></i>
+                                    <span>Drama</span>
+                                </div>
+                                <div class="topic-item" data-topic="literary-theory">
+                                    <i class="fas fa-quote-right"></i>
+                                    <span>Literary Theory</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Psychology</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="cognitive">
+                                    <i class="fas fa-brain"></i>
+                                    <span>Cognitive Psychology</span>
+                                </div>
+                                <div class="topic-item" data-topic="developmental">
+                                    <i class="fas fa-child"></i>
+                                    <span>Developmental Psychology</span>
+                                </div>
+                                <div class="topic-item" data-topic="social">
+                                    <i class="fas fa-users"></i>
+                                    <span>Social Psychology</span>
+                                </div>
+                                <div class="topic-item" data-topic="abnormal">
+                                    <i class="fas fa-psychology"></i>
+                                    <span>Abnormal Psychology</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Computer Science</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="data-structures">
+                                    <i class="fas fa-project-diagram"></i>
+                                    <span>Data Structures</span>
+                                </div>
+                                <div class="topic-item" data-topic="databases">
+                                    <i class="fas fa-database"></i>
+                                    <span>Databases</span>
+                                </div>
+                                <div class="topic-item" data-topic="networking">
+                                    <i class="fas fa-network-wired"></i>
+                                    <span>Computer Networks</span>
+                                </div>
+                                <div class="topic-item" data-topic="os">
+                                    <i class="fas fa-desktop"></i>
+                                    <span>Operating Systems</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-group">
+                            <h4>Philosophy</h4>
+                            <div class="topic-list">
+                                <div class="topic-item" data-topic="metaphysics">
+                                    <i class="fas fa-infinity"></i>
+                                    <span>Metaphysics</span>
+                                </div>
+                                <div class="topic-item" data-topic="ethics">
+                                    <i class="fas fa-balance-scale"></i>
+                                    <span>Ethics</span>
+                                </div>
+                                <div class="topic-item" data-topic="epistemology">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span>Epistemology</span>
+                                </div>
+                                <div class="topic-item" data-topic="logic">
+                                    <i class="fas fa-stream"></i>
+                                    <span>Logic</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="practice-content" id="practice-content">
+                        <div class="practice-empty">
+                            <i class="fas fa-pencil-alt"></i>
+                            <p>Select a topic to start practicing</p>
+                        </div>
+                        <!-- Practice content will be inserted here when a topic is selected -->
+                    </div>
+                </div>
+                
+                <!-- Topics Section -->
+                <div class="learning-section" id="topics-section" style="display: none;">
+                    <div class="section-header">
+                        <h3>Browse Topics</h3>
+                    </div>
+                    <div class="subjects-grid">
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                            <h4>Programming</h4>
+                            <ul class="subject-topics">
+                                <li>Web Development</li>
+                                <li>Mobile App Development</li>
+                                <li>Data Structures</li>
+                                <li>Algorithms</li>
+                                <li>Object-Oriented Programming</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <h4>Mathematics</h4>
+                            <ul class="subject-topics">
+                                <li>Algebra</li>
+                                <li>Calculus</li>
+                                <li>Geometry</li>
+                                <li>Statistics</li>
+                                <li>Number Theory</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <h4>Science</h4>
+                            <ul class="subject-topics">
+                                <li>Physics</li>
+                                <li>Chemistry</li>
+                                <li>Biology</li>
+                                <li>Astronomy</li>
+                                <li>Environmental Science</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <h4>Languages</h4>
+                            <ul class="subject-topics">
+                                <li>English</li>
+                                <li>Spanish</li>
+                                <li>French</li>
+                                <li>German</li>
+                                <li>Japanese</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h4>Arts</h4>
+                            <ul class="subject-topics">
+                                <li>Visual Arts</li>
+                                <li>Music Theory</li>
+                                <li>Drama</li>
+                                <li>Design</li>
+                                <li>Art History</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h4>Literature</h4>
+                            <ul class="subject-topics">
+                                <li>Poetry</li>
+                                <li>Novels</li>
+                                <li>Drama</li>
+                                <li>Literary Analysis</li>
+                                <li>Creative Writing</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <h4>History</h4>
+                            <ul class="subject-topics">
+                                <li>Ancient History</li>
+                                <li>Medieval History</li>
+                                <li>Modern History</li>
+                                <li>World Wars</li>
+                                <li>Cultural History</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h4>Psychology</h4>
+                            <ul class="subject-topics">
+                                <li>Cognitive Psychology</li>
+                                <li>Developmental Psychology</li>
+                                <li>Social Psychology</li>
+                                <li>Clinical Psychology</li>
+                                <li>Behavioral Psychology</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4>Economics</h4>
+                            <ul class="subject-topics">
+                                <li>Microeconomics</li>
+                                <li>Macroeconomics</li>
+                                <li>International Economics</li>
+                                <li>Financial Economics</li>
+                                <li>Development Economics</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <h4>Law</h4>
+                            <ul class="subject-topics">
+                                <li>Constitutional Law</li>
+                                <li>Criminal Law</li>
+                                <li>Civil Law</li>
+                                <li>International Law</li>
+                                <li>Business Law</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-microscope"></i>
+                            </div>
+                            <h4>Medicine</h4>
+                            <ul class="subject-topics">
+                                <li>Anatomy</li>
+                                <li>Physiology</li>
+                                <li>Pathology</li>
+                                <li>Pharmacology</li>
+                                <li>Medical Ethics</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                        <div class="subject-card">
+                            <div class="subject-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4>Technology</h4>
+                            <ul class="subject-topics">
+                                <li>Artificial Intelligence</li>
+                                <li>Machine Learning</li>
+                                <li>Data Science</li>
+                                <li>Cybersecurity</li>
+                                <li>Cloud Computing</li>
+                            </ul>
+                            <button class="explore-btn">Explore</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recommended-resources">
+                    <h3>Recommended Resources</h3>
+                    <div id="recommended-resources-container" class="resource-cards">
+                        <div class="empty-state">
+                            <i class="fas fa-lightbulb"></i>
+                            <p>Resources will be recommended according to your learning progress.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fun Talks Tab Content -->
+            <div class="tab-content" id="fun-talks-content">
+                <div class="fun-talks-header">
+                    <h2>Fun Talks with Your AI Friend</h2>
+                    <p>Chat about anything, anytime!</p>
+                </div>
+                
+                <div class="fun-talks-container">
+                    <div class="topic-selection">
+                        <h3>Conversation Topics</h3>
+                        <div class="topic-cards">
+                            <div class="topic-card">
+                                <i class="fas fa-music"></i>
+                                <span>Music</span>
+                            </div>
+                            <div class="topic-card">
+                                <i class="fas fa-film"></i>
+                                <span>Movies</span>
+                            </div>
+                            <div class="topic-card">
+                                <i class="fas fa-gamepad"></i>
+                                <span>Gaming</span>
+                            </div>
+                            <div class="topic-card">
+                                <i class="fas fa-bicycle"></i>
+                                <span>Hobbies</span>
+                            </div>
+                            <div class="topic-card">
+                                <i class="fas fa-globe"></i>
+                                <span>Travel</span>
+                            </div>
+                            <div class="topic-card">
+                                <i class="fas fa-brain"></i>
+                                <span>Trivia</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="fun-chat">
+                        <div class="fun-chat-messages" id="fun-chat-history">
+                            <div class="message ai-message">
+                                <div class="avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <p>Hey there! What would you like to chat about today? I'm here to be your friend!</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-container">
+                            <input type="text" id="fun-chat-input" placeholder="Type your message...">
+                            <button id="send-fun-message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Games Tab Content -->
+            <div class="tab-content" id="games-content">
+                <div class="games-header">
+                    <h2>Educational Games</h2>
+                    <p>Learn while having fun!</p>
+                </div>
+                
+                <div class="games-container">
+                    <div class="game-card" id="math-game">
+                        <div class="game-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="game-info">
+                            <h3>Math Challenge</h3>
+                            <p>Test your math skills with fun puzzles</p>
+                            <button class="play-btn" data-game="math-challenge">Play Now</button>
+                        </div>
+                    </div>
+                    <div class="game-card" id="word-game">
+                        <div class="game-icon">
+                            <i class="fas fa-font"></i>
+                        </div>
+                        <div class="game-info">
+                            <h3>Word Wizard</h3>
+                            <p>Expand your vocabulary through play</p>
+                            <button class="play-btn" data-game="word-wizard">Play Now</button>
+                        </div>
+                    </div>
+                    <div class="game-card" id="science-game">
+                        <div class="game-icon">
+                            <i class="fas fa-atom"></i>
+                        </div>
+                        <div class="game-info">
+                            <h3>Science Explorer</h3>
+                            <p>Discover scientific concepts through interactive experiments</p>
+                            <button class="play-btn" data-game="science-explorer">Play Now</button>
+                        </div>
+                    </div>
+                    <div class="game-card" id="quiz-game">
+                        <div class="game-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="game-info">
+                            <h3>Knowledge Quiz</h3>
+                            <p>Test your knowledge across various subjects</p>
+                            <button class="play-btn" data-game="knowledge-quiz">Play Now</button>
+                        </div>
+                    </div>
+                    <div class="game-card" id="code-master">
+                        <div class="game-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="game-info">
+                            <h3>Code Master</h3>
+                            <p>Solve programming challenges and learn to code</p>
+                            <button class="play-btn" data-game="code-master">Play Now</button>
+                        </div>
+                    </div>
+                    <div class="game-card" id="memory-master">
+                        <div class="game-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="game-info">
+                            <h3>Memory Master</h3>
+                            <p>Boost cognitive skills with memory and pattern exercises</p>
+                            <button class="play-btn" data-game="memory-master">Play Now</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Game Play Area -->
+                <div id="game-play-area" style="display: none;">
+                    <div class="game-header">
+                        <button id="back-to-games" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Games</button>
+                        <h3 id="current-game-title">Game Title</h3>
+                    </div>
+                    <div id="game-container"></div>
+                </div>
+            </div>
+            
+            <!-- Customize AI Tab Content -->
+            <div class="tab-content" id="customize-content">
+                <div class="customize-header">
+                    <h2>Customize Your AI Tutor</h2>
+                    <p>Make your learning experience unique!</p>
+                </div>
+                
+                <div class="customize-options">
+                    <div class="customize-section">
+                        <h3>AI Voice</h3>
+                        <div class="voice-options">
+                            <div class="voice-option">
+                                <input type="radio" id="voice-male" name="voice" value="male">
+                                <label for="voice-male">Male</label>
+                            </div>
+                            <div class="voice-option">
+                                <input type="radio" id="voice-female" name="voice" value="female" checked>
+                                <label for="voice-female">Female</label>
+                            </div>
+                            <div class="voice-option">
+                                <input type="radio" id="voice-neutral" name="voice" value="neutral">
+                                <label for="voice-neutral">Neutral</label>
+                            </div>
+                        </div>
+                        <div class="voice-controls">
+                            <div class="control-group">
+                                <label>Speed</label>
+                                <input type="range" min="0.5" max="2" step="0.1" value="1" id="voice-speed">
+                            </div>
+                            <div class="control-group">
+                                <label>Pitch</label>
+                                <input type="range" min="0.5" max="2" step="0.1" value="1" id="voice-pitch">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="customize-section">
+                        <h3>Teaching Style</h3>
+                        <div class="style-options">
+                            <div class="style-option">
+                                <input type="radio" id="style-detailed" name="teaching-style" value="detailed" checked>
+                                <label for="style-detailed">Detailed Explanations</label>
+                            </div>
+                            <div class="style-option">
+                                <input type="radio" id="style-concise" name="teaching-style" value="concise">
+                                <label for="style-concise">Concise Explanations</label>
+                            </div>
+                            <div class="style-option">
+                                <input type="radio" id="style-interactive" name="teaching-style" value="interactive">
+                                <label for="style-interactive">Interactive Learning</label>
+                            </div>
+                            <div class="style-option">
+                                <input type="radio" id="style-socratic" name="teaching-style" value="socratic">
+                                <label for="style-socratic">Socratic Method</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="customize-section">
+                        <h3>Personality</h3>
+                        <div class="personality-options">
+                            <div class="personality-option">
+                                <input type="radio" id="personality-friendly" name="personality" value="friendly" checked>
+                                <label for="personality-friendly">Friendly & Encouraging</label>
+                            </div>
+                            <div class="personality-option">
+                                <input type="radio" id="personality-formal" name="personality" value="formal">
+                                <label for="personality-formal">Formal & Professional</label>
+                            </div>
+                            <div class="personality-option">
+                                <input type="radio" id="personality-humorous" name="personality" value="humorous">
+                                <label for="personality-humorous">Humorous & Playful</label>
+                            </div>
+                            <div class="personality-option">
+                                <input type="radio" id="personality-motivational" name="personality" value="motivational">
+                                <label for="personality-motivational">Motivational & Inspiring</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="customize-section">
+                        <h3>Difficulty Level</h3>
+                        <div class="difficulty-slider">
+                            <input type="range" min="1" max="5" value="3" id="difficulty-level">
+                            <div class="difficulty-labels">
+                                <span>Beginner</span>
+                                <span>Intermediate</span>
+                                <span>Advanced</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="save-preferences-btn">Save Preferences</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Dropdown menu outside of profile-avatar but in the document body for better positioning -->
+    <div class="dropdown-menu" id="profile-dropdown">
+        <div class="dropdown-item" id="view-profile">
+            <i class="fas fa-user"></i> View Profile
+        </div>
+        <div class="dropdown-item" id="settings">
+            <i class="fas fa-cog"></i> Settings
+        </div>
+        <div class="dropdown-item" id="logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </div>
+    </div>
+
+    <!-- Load Firebase initialization first -->
+    <script src="modal.js"></script>
+    <script src="backend/api_client.js"></script>
+    <script src="backend/integration.js"></script>
+    <script src="profile-dropdown-fix.js"></script>
+    <script src="profile.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="greeting-functionality.js"></script>
+    <script src="tab-fix.js"></script>
+    <script src="customize-ai.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setupTabs();
+        });
+    </script>
+</body>
+</html>

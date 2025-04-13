@@ -1,0 +1,11 @@
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.idea/
+.vscode/
+node_modules/
+mentaura-75fa0-firebase-adminsdk-fbsvc-e0c852c9ad.json 

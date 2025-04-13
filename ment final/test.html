@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentaura Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .user-message {
+            background-color: #e1f5fe;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            max-width: 70%;
+            margin-left: auto;
+        }
+        .ai-message {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            max-width: 70%;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .test-buttons button {
+            background-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mentaura API Test</h1>
+    
+    <div class="test-buttons">
+        <button id="testHi">Test "Hi" Response</button>
+        <button id="testHello">Test "Hello" Response</button>
+    </div>
+
+    <div class="chat-container" id="chat-container"></div>
+
+    <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+        <button id="voice-button">Voice</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const voiceButton = document.getElementById('voice-button');
+            const testHiButton = document.getElementById('testHi');
+            const testHelloButton = document.getElementById('testHello');
+
+            // Function to add a message to the chat
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = sender === 'user' ? 'user-message' : 'ai-message';
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Function to handle API response
+            async function processMessage(message) {
+                addMessage(message, 'user');
+                
+                try {
+                    // Send the message to the Mentaura API
+                    const response = await fetch('http://localhost:5000/process_input', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text: message })
+                    });
+                    
+                    const data = await response.json();
+                    console.log('API Response:', data);
+                    
+                    // If we have text, display it
+                    if (data.text) {
+                        addMessage(data.text, 'ai');
+                    }
+                    
+                    // If we have audio, play it
+                    if (data.audio) {
+                        const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
+                        audio.play();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('Error communicating with the API. Please try again.', 'ai');
+                }
+                
+                // Clear the input field
+                userInput.value = '';
+            }
+
+            // Event listener for the send button
+            sendButton.addEventListener('click', function() {
+                const message = userInput.value.trim();
+                if (message) {
+                    processMessage(message);
+                }
+            });
+
+            // Event listener for the Enter key
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const message = userInput.value.trim();
+                    if (message) {
+                        processMessage(message);
+                    }
+                }
+            });
+
+            // Test buttons
+            testHiButton.addEventListener('click', function() {
+                processMessage('hi');
+            });
+
+            testHelloButton.addEventListener('click', function() {
+                processMessage('hello');
+            });
+        });
+    </script>
+</body>
+</html> 
